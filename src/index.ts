@@ -1,12 +1,52 @@
 import express from "express";
 import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "../database.types";
 
 dotenv.config();
 
+const supabase = createClient<Database>(
+  process.env.SUPABASE_URL || "",
+  process.env.SUPABASE_ANON_KEY || ""
+);
+
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Hello World");
+app.use(express.json());
+
+app.post("/api/url", async (req, res) => {
+  const { url, domain } = req.body;
+  const { nanoid } = await import("nanoid");
+
+  const { data, error } = await supabase
+    .from("urls")
+    .insert({
+      url,
+      domain,
+      shortened: nanoid(6),
+    })
+    .select();
+
+  if (error) {
+    res.status(500).json({ error: error.message });
+  } else {
+    res.status(200).json({ data });
+  }
+});
+
+app.get("/api/url/:shortened", async (req, res) => {
+  const { shortened } = req.params;
+
+  const { data, error } = await supabase
+    .from("urls")
+    .select("*")
+    .eq("shortened", shortened);
+
+  if (error) {
+    res.status(500).json({ error: error.message });
+  } else {
+    res.status(301).redirect(data[0].url);
+  }
 });
 
 app.listen(process.env.PORT, () => {
