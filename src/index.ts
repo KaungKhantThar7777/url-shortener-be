@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../database.types";
-
+import cors from "cors";
 dotenv.config();
 
 const supabase = createClient<Database>(
@@ -13,6 +13,8 @@ const supabase = createClient<Database>(
 const app = express();
 
 app.use(express.json());
+
+app.use(cors());
 
 app.post("/api/url", async (req, res) => {
   const { url, domain } = req.body;
