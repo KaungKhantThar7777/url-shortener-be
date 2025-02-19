@@ -53,7 +53,7 @@ app.get("/api/url/:shortened", async (req, res) => {
     res.status(404).json({ error: "URL not found" });
     return;
   }
-  res.json({ data });
+  res.redirect(301, data[0].url);
 });
 
 app.listen(process.env.PORT, () => {
